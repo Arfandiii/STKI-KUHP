@@ -3,21 +3,21 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Bab extends Model
 {   
-    
+    use HasFactory;
+
     protected $table = 'bab';
     protected $guarded = ['id'];
 
-    public function buku(): BelongsTo
+    public function buku()
     {
         return $this->belongsTo(Buku::class);
     }
 
-    public function pasals(): HasMany
+    public function pasals()
     {
         return $this->hasMany(Pasal::class);
     }

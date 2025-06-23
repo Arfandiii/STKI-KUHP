@@ -15,7 +15,7 @@
                             class="flex-shrink w-full border border-gray-200 focus:border-red-900 focus:outline-none rounded-lg p-3 bg-white"
                             type="text" name="query" placeholder="Masukkan kata kunci..." required>
                         <button
-                            class="bg-red-800 text-white border-red-800 border rounded-lg px-4 py-3 ml-2 hover:bg-red-700"
+                            class="cursor-pointer bg-red-800 text-white border-red-800 border rounded-lg px-4 py-3 ml-2 hover:bg-red-700"
                             type="submit">
                             Cari
                         </button>

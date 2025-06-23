@@ -19,25 +19,25 @@
     </div>
 
     <!-- Navbar -->
-    @include('components.layouts.navbar')
+    @include('layouts.navbar')
 
     <!-- Hero Section -->
-    @include('components.sections.hero')
+    @include('sections.hero')
 
     <!-- Features Section -->
-    @include('components.sections.features')
+    @include('sections.features')
 
     <!-- How to Use Section -->
-    @include('components.sections.how-to-use')
+    @include('sections.how-to-use')
 
     <!-- Testimonial Section -->
-    {{-- @include('components.sections.testimonials') --}}
+    {{-- @include('sections.testimonials') --}}
 
     <!-- Contact Section -->
-    @include('components.sections.contact')
+    @include('sections.contact')
 
     <!-- Footer -->
-    @include('components.layouts.footer')
+    @include('layouts.footer')
 
 </body>
 

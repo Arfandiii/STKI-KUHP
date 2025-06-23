@@ -5,14 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Buku extends Model
+class TermIndex extends Model
 {
     use HasFactory;
-    protected $table = 'buku';
+
+    protected $table = 'term_index';
+
     protected $guarded = ['id'];
 
-    public function babs()
+    public function pasal()
     {
-        return $this->hasMany(Bab::class);
+        return $this->belongsTo(Pasal::class);
     }
 }
