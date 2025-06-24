@@ -5,12 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class TermIndex extends Model
+class DocumentTerm extends Model
 {
     use HasFactory;
-
-    protected $table = 'term_index';
-
+    protected $table = 'document_terms';
     protected $guarded = ['id'];
 
     public function pasal()

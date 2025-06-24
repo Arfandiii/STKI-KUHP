@@ -1,8 +1,10 @@
 <?php
 namespace App\Helpers;
 
+use Illuminate\Support\Facades\Log;
 use Sastrawi\Stemmer\StemmerFactory;
 use Sastrawi\StopWordRemover\StopWordRemoverFactory;
+use Sastrawi\StopWordRemover\StopWordRemover;
 
 class TextPreprocessing
 {
@@ -33,9 +35,9 @@ class TextPreprocessing
     // Filter tokens untuk hanya menyimpan token yang terdiri dari huruf
     public static function filterTokens($tokens)
     {
-        // Filtering token (hanya huruf)
+        // Filtering token (hanya huruf dan tidak kosong)
         return array_filter($tokens, function($token) {
-            return preg_match('/^[a-z]+$/', $token);
+            return preg_match('/^[a-z]+$/', $token) && $token !== '';
         });
     }
 
@@ -51,10 +53,12 @@ class TextPreprocessing
     // Stemming token
     public static function stemTokens($tokens)
     {
-        // Stemming token
-        return array_map(function($token) {
+        // Stemming token dan hapus token kosong
+        return array_filter(array_map(function($token) {
             return self::$stemmer->stem($token);
-        }, $tokens);
+        }, $tokens), function($token) {
+            return $token !== '';
+        });
     }
 
     public static function preprocessText($text)

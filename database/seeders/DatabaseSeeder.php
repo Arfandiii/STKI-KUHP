@@ -23,7 +23,7 @@ class DatabaseSeeder extends Seeder
         $this->call(BukuSeeder::class);
         $this->call(BabSeeder::class);
         $this->call(PasalSeeder::class);
-        $this->call(TfidfSeeder::class);
+        // $this->call(TfidfSeeder::class);
         // $this->call(ImportPasalSeeder::class);
     }
 }

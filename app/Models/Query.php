@@ -5,20 +5,20 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Pasal extends Model
+class Query extends Model
 {
     use HasFactory;
-    protected $table = 'pasal';
+    protected $table = 'queries';
     protected $guarded = ['id'];
 
-    public function bab()
+    public function user()
     {
-        return $this->belongsTo(Bab::class);
+        return $this->belongsTo(User::class);
     }
 
-    public function documentTerms()
+    public function queryTerms()
     {
-        return $this->hasMany(DocumentTerm::class);
+        return $this->hasMany(QueryTerm::class);
     }
 
     // public function similarityScores()

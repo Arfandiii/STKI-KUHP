@@ -11,15 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('pasal', function (Blueprint $table) {
+        Schema::create('query_terms', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('bab_id')->constrained('bab')->cascadeOnDelete();
-            $table->string('nomor_pasal');
-            $table->text('isi_pasal');
+            $table->foreignId('query_id')->constrained()->cascadeOnDelete();
+            $table->string('term');
+            $table->integer('tf');
+            $table->double('tfidf');
             $table->timestamps();
-
-            // Unik per bab: tidak boleh ada nomor_pasal yang sama dalam satu bab
-            $table->unique(['bab_id', 'nomor_pasal']);
         });
     }
 
@@ -28,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('pasal');
+        Schema::dropIfExists('query_terms');
     }
 };

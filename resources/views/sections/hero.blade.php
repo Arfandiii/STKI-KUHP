@@ -9,7 +9,8 @@
                 informasi
             </p>
             <div class="w-full max-w-lg text-center align-center mx-auto">
-                <form action="/search" method="GET">
+                <form action="{{ route('process.query') }}" method="POST">
+                    @csrf
                     <div class="flex items-center">
                         <input
                             class="flex-shrink w-full border border-gray-200 focus:border-red-900 focus:outline-none rounded-lg p-3 bg-white"

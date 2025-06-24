@@ -11,12 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('term_index', function (Blueprint $table) {
+        Schema::create('document_terms', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('pasal_id')->constrained('pasal')->onDelete('cascade');
-            $table->string('term'); // kata dasar
-            $table->float('tfidf'); // bobot TF-IDF
+            $table->foreignId('pasal_id')->constrained('pasal')->cascadeOnDelete();
+            $table->string('term');
+            $table->integer('tf');
+            $table->double('tfidf');
             $table->timestamps();
+            
+            $table->index(['term', 'pasal_id']);
         });
     }
 
@@ -25,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('term_index');
+        Schema::dropIfExists('document_terms');
     }
 };

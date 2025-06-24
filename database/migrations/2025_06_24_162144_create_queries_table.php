@@ -11,15 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('pasal', function (Blueprint $table) {
+        Schema::create('queries', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('bab_id')->constrained('bab')->cascadeOnDelete();
-            $table->string('nomor_pasal');
-            $table->text('isi_pasal');
+            $table->text('user_input');
             $table->timestamps();
-
-            // Unik per bab: tidak boleh ada nomor_pasal yang sama dalam satu bab
-            $table->unique(['bab_id', 'nomor_pasal']);
         });
     }
 
@@ -28,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('pasal');
+        Schema::dropIfExists('queries');
     }
 };
