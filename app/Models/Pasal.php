@@ -21,8 +21,9 @@ class Pasal extends Model
         return $this->hasMany(DocumentTerm::class);
     }
 
+}
+
     // public function similarityScores()
     // {
     //     return $this->hasMany(SimilarityScore::class);
     // }
-}

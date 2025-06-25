@@ -21,8 +21,9 @@ class Query extends Model
         return $this->hasMany(QueryTerm::class);
     }
 
+}
+
     // public function similarityScores()
     // {
     //     return $this->hasMany(SimilarityScore::class);
     // }
-}
