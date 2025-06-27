@@ -11,7 +11,7 @@
 
 <body class="'bg-gray-100')">
     <!-- Navbar -->
-    @include('components.layouts.navbar')
+    @include('layouts.navbar')
 
     <!-- Main Content -->
     <div class="container mx-auto px-4 py-6">
@@ -19,7 +19,7 @@
     </div>
 
     <!-- Footer -->
-    @include('components.layouts.footer')
+    @include('layouts.footer')
 </body>
 
 </html>

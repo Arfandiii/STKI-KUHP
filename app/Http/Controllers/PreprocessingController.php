@@ -14,15 +14,12 @@ class PreprocessingController extends Controller
 {
     public function preprocessAllPasal()
     {
-        // Inisialisasi helper preprocessing
-        TextPreprocessing::init();
-
         $pasals = Pasal::all();
 
         foreach ($pasals as $pasal) {
             $this->preprocessPasal($pasal);
         }
-
+        
         return response()->json(['message' => 'Preprocessing all pasal completed.']);
     }
 
@@ -59,9 +56,6 @@ class PreprocessingController extends Controller
         // Ambil teks query dari request
         $queryText = $request->input('query');
 
-        // Inisialisasi helper preprocessing
-        TextPreprocessing::init();
-
         // Preprocessing query text
         $processedTokens = TextPreprocessing::preprocessText($queryText);
 
@@ -90,4 +84,110 @@ class PreprocessingController extends Controller
         // return redirect()->back()->with('success', 'Query berhasil diproses.');
         return response()->json(['message' => 'Preprocessing query completed.']);
     }
+
+
+    public function getPasalDocuments()
+    {
+        $ids = [13, 31, 32, 35, 43];
+
+        $pasalData = Pasal::whereIn('id', $ids)->with('bab.buku')->get();
+
+        return $pasalData->map(function ($item) {
+            return [
+                'buku' => $item->bab->buku->judul ?? 'Tidak Diketahui',
+                'bab' => $item->bab->nomor_bab ?? 'Tidak Diketahui',
+                'pasal' => $item->nomor_pasal,
+                'isi' => $item->isi_pasal
+            ];
+        })->toArray();
+    }
+
+    public function preprocessPasalDocuments()
+    {
+        $documents = $this->getPasalDocuments();
+
+        // Preprocessing dokumen pasal
+        foreach ($documents as &$document) {
+            $document['tokens'] = TextPreprocessing::preprocessText($document['isi']);
+        }
+
+        return $documents;
+    }
+
+    /**
+     * Menghitung bobot Term Frequency (TF) untuk setiap token.
+     *
+     * @param array $tokens
+     * @return array
+     */
+    public function calculateTFWeights($tokens)
+    {
+        // Menghitung frekuensi setiap token
+        $tokenFrequencies = array_count_values($tokens);
+        
+        // Menghitung bobot TF untuk setiap token
+        $tfWeights = [];
+        foreach ($tokenFrequencies as $token => $frequency) {
+            $tfWeights[$token] = round(1 + log($frequency, 10), 4); // Log basis 10
+        }
+        
+        return $tfWeights;
+    }
+
+    /**
+     * Menghitung Inverse Document Frequency (IDF) untuk setiap token.
+     *
+     * @param array $documents
+     * @return array
+     */
+    public function calculateIDF($documents)
+    {
+        $allTokens = collect();
+        
+        // Mengumpulkan semua token dari semua dokumen
+        foreach ($documents as $document) {
+            $allTokens = $allTokens->merge($document['tokens']);
+        }
+        
+        // Menghitung jumlah total dokumen
+        $totalDocuments = count($documents);
+        
+        // Menghitung jumlah dokumen yang mengandung setiap kata
+        $docFrequency = [];
+        foreach ($allTokens->unique() as $token) {
+            $count = 0;
+            foreach ($documents as $document) {
+                if (in_array($token, $document['tokens'])) {
+                    $count++;
+                }
+            }
+            $docFrequency[$token] = $count;
+        }
+        
+        // Menghitung IDF untuk setiap kata
+        $idf = [];
+        foreach ($docFrequency as $token => $frequency) {
+            $idf[$token] = round(log($totalDocuments / $frequency, 10), 4);
+        }
+        
+        return $idf;
+    }
+
+    public function resultPreprocessing()
+    {
+        $documentsPasal = $this->getPasalDocuments();
+        $documents = $this->preprocessPasalDocuments();
+
+        foreach ($documents as &$document) {
+            $document['tf'] = $this->calculateTFWeights($document['tokens']);
+        }
+
+        // Menghitung IDF
+        $idf = $this->calculateIDF($documents);
+
+        $query = "Mencuri dan membunuh dengan senjata tajam.";
+
+        return view('sections.result', compact('documentsPasal', 'documents', 'query', 'idf'));
+    }
+
 }
