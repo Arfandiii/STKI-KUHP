@@ -2,18 +2,21 @@
 <nav class="bg-red-900 text-white p-4 lg:px-16 shadow sticky top-0 z-50">
     <div class="flex items-center justify-between flex-wrap">
         <div class="flex items-center flex-shrink-0 text-white">
-            <a href="#home" class="font-semibold text-xl tracking-tight">Sistem Pencarian Pasal KUHP</a>
+            <a href="{{ route('home') }}" class="font-semibold text-xl tracking-tight">Sistem Pencarian Pasal KUHP</a>
         </div>
 
         <div class="w-full hidden lg:flex lg:items-center lg:w-auto">
             <div class="text-sm lg:flex-grow">
-                <a href="#tentang" class="block mt-4 lg:inline-block lg:mt-0 text-red-200 hover:text-white mr-4">
+                <a href="{{ route('tentang') }}"
+                    class="block mt-4 lg:inline-block lg:mt-0 text-red-200 hover:text-white mr-4">
                     Tentang
                 </a>
-                <a href="#cara-pakai" class="block mt-4 lg:inline-block lg:mt-0 text-red-200 hover:text-white mr-4">
+                <a href="{{ route('cara-pakai') }}"
+                    class="block mt-4 lg:inline-block lg:mt-0 text-red-200 hover:text-white mr-4">
                     Cara Penggunaan
                 </a>
-                <a href="#kontak" class="block mt-4 lg:inline-block lg:mt-0 text-red-200 hover:text-white">
+                <a href="{{ route('kontak') }}"
+                    class="block mt-4 lg:inline-block lg:mt-0 text-red-200 hover:text-white">
                     Kontak
                 </a>
             </div>

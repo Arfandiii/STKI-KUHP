@@ -52,7 +52,7 @@ class BabSeeder extends Seeder
             ],
             [
                 'buku' => 'BUKU KESATU ATURAN UMUM',
-                'nomor_bab' => 'I',
+                'nomor_bab' => 'VIII',
                 'label_bab' => 'HAPUSNYA KEWENANGAN MENUNTUT PIDANA DAN MENJALANKAN PIDANA',
             ],
             [

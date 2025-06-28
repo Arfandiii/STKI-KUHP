@@ -6,7 +6,7 @@ use App\Models\DocumentTerm;
 
 class VectorSpaceModel
 {
-    // Hitung TF-IDF
+    // Hitung TF-IDF pasal
     public static function calculateTFIDF($tf, $totalDocuments = null)
     {
         if ($totalDocuments === null) {
@@ -25,4 +25,5 @@ class VectorSpaceModel
 
         return $tfidf;
     }
+    
 }

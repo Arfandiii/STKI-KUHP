@@ -114,80 +114,203 @@ class PreprocessingController extends Controller
         return $documents;
     }
 
-    /**
-     * Menghitung bobot Term Frequency (TF) untuk setiap token.
-     *
-     * @param array $tokens
-     * @return array
-     */
-    public function calculateTFWeights($tokens)
+    public function calculateTermFrequencies($documents, $queryTokens)
     {
-        // Menghitung frekuensi setiap token
-        $tokenFrequencies = array_count_values($tokens);
-        
-        // Menghitung bobot TF untuk setiap token
-        $tfWeights = [];
-        foreach ($tokenFrequencies as $token => $frequency) {
-            $tfWeights[$token] = round(1 + log($frequency, 10), 4); // Log basis 10
+        $allTerms = [];
+
+        // Kumpulkan semua term unik dari dokumen
+        foreach ($documents as $doc) {
+            foreach ($doc['tokens'] as $term) {
+                $allTerms[] = $term;
+            }
         }
-        
-        return $tfWeights;
+
+        // Tambahkan juga dari query
+        foreach ($queryTokens as $term) {
+            $allTerms[] = $term;
+        }
+
+        $uniqueTerms = array_values(array_unique($allTerms));
+
+        $tfTable = [];
+
+        foreach ($uniqueTerms as $term) {
+            $row = ['term' => $term];
+
+            // Hitung TF untuk tiap dokumen
+            foreach ($documents as $index => $doc) {
+                $count = array_count_values($doc['tokens'])[$term] ?? 0;
+                $row["D" . ($index + 1)] = $count;
+            }
+
+            // Hitung TF untuk query
+            $row["Q"] = array_count_values($queryTokens)[$term] ?? 0;
+
+            $tfTable[] = $row;
+        }
+
+        return $tfTable;
     }
 
-    /**
-     * Menghitung Inverse Document Frequency (IDF) untuk setiap token.
-     *
-     * @param array $documents
-     * @return array
-     */
-    public function calculateIDF($documents)
+    public function calculateTFWeight($tfTable, $docCount)
     {
-        $allTokens = collect();
-        
-        // Mengumpulkan semua token dari semua dokumen
-        foreach ($documents as $document) {
-            $allTokens = $allTokens->merge($document['tokens']);
+        $tfWeightTable = [];
+
+        foreach ($tfTable as $row) {
+            $newRow = ['term' => $row['term']];
+
+            // Proses setiap dokumen
+            for ($i = 1; $i <= $docCount; $i++) {
+                $tf = $row["D$i"];
+                $newRow["D$i"] = $tf > 0 ? round(1 + log10($tf), 4) : 0;
+            }
+
+            // Proses Query
+            $tfQ = $row['Q'];
+            $newRow['Q'] = $tfQ > 0 ? round(1 + log10($tfQ), 4) : 0;
+
+            $tfWeightTable[] = $newRow;
         }
-        
-        // Menghitung jumlah total dokumen
-        $totalDocuments = count($documents);
-        
-        // Menghitung jumlah dokumen yang mengandung setiap kata
-        $docFrequency = [];
-        foreach ($allTokens->unique() as $token) {
-            $count = 0;
-            foreach ($documents as $document) {
-                if (in_array($token, $document['tokens'])) {
-                    $count++;
+
+        return $tfWeightTable;
+    }
+
+    public function calculateIDF($tfTable, $docCount)
+    {
+        $idfTable = [];
+
+        foreach ($tfTable as $row) {
+            $term = $row['term'];
+
+            // Hitung DF (jumlah dokumen yang memiliki term ini)
+            $df = 0;
+            for ($i = 1; $i <= $docCount; $i++) {
+                if ($row["D$i"] > 0) {
+                    $df++;
                 }
             }
-            $docFrequency[$token] = $count;
+
+            // Hitung IDF (hindari pembagian nol)
+            // $idf = $df > 0 ? round(log10($docCount / $df), 4) : 0;
+
+            $idf = log10(($docCount + 1) / ($df + 1)) + 1;
+
+            $idfTable[] = [
+                'term' => $term,
+                'df' => $df,
+                'idf' => $idf
+            ];
         }
-        
-        // Menghitung IDF untuk setiap kata
-        $idf = [];
-        foreach ($docFrequency as $token => $frequency) {
-            $idf[$token] = round(log($totalDocuments / $frequency, 10), 4);
+
+        return $idfTable;
+    }
+
+
+    public function calculateTFIDF($tfWeightTable, $idfTable, $docCount)
+    {
+        $tfidfTable = [];
+
+        foreach ($tfWeightTable as $tfRow) {
+            $term = $tfRow['term'];
+
+            // Cari IDF dari term ini
+            $idfMap = array_column($idfTable, 'idf', 'term');
+            // …
+            $idf = $idfMap[$term] ?? 0;
+
+            $row = ['term' => $term];
+
+            // Kalikan TF Weight * IDF untuk tiap dokumen
+            for ($i = 1; $i <= $docCount; $i++) {
+                $tfWeight = $tfRow["D$i"];
+                $row["D$i"] = round($tfWeight * $idf, 4);
+            }
+
+            // Kalikan untuk Query
+            $tfWeightQ = $tfRow["Q"];
+            $row["Q"] = round($tfWeightQ * $idf, 4);
+
+            $tfidfTable[] = $row;
         }
-        
-        return $idf;
+
+        return $tfidfTable;
+    }
+
+    public function calculateCosineSimilarity($tfidfTable, $docCount)
+    {
+        $similarities = [];
+
+        // Hitung panjang vektor Query
+        $queryVectorLength = 0;
+        foreach ($tfidfTable as $row) {
+            $queryVectorLength += pow($row['Q'], 2);
+        }
+        $queryVectorLength = sqrt($queryVectorLength);
+
+        // Hitung cosine similarity dengan tiap dokumen
+        for ($i = 1; $i <= $docCount; $i++) {
+            $dotProduct = 0;
+            $docVectorLength = 0;
+
+            foreach ($tfidfTable as $row) {
+                $docVal = $row["D$i"];
+                $queryVal = $row["Q"];
+
+                $dotProduct += $docVal * $queryVal;
+                $docVectorLength += pow($docVal, 2);
+            }
+
+            $docVectorLength = sqrt($docVectorLength);
+
+            // Hindari pembagian nol
+            $cosine = ($queryVectorLength > 0 && $docVectorLength > 0)
+                ? round($dotProduct / ($queryVectorLength * $docVectorLength), 4)
+                : 0;
+
+            $similarities[] = [
+                'doc' => "D$i",
+                'similarity' => $cosine
+            ];
+        }
+
+        return $similarities;
     }
 
     public function resultPreprocessing()
     {
+        // Ambil dokumen pasal
         $documentsPasal = $this->getPasalDocuments();
         $documents = $this->preprocessPasalDocuments();
+        
+        // Contoh query yang akan diproses
+        $query = "Terpidana melarikan diri dari tempat pidana penjara.";
+        $preprocessedQuery = TextPreprocessing::preprocessText($query);
+        
+        // TF
+        $tfTable = $this->calculateTermFrequencies($documents, $preprocessedQuery);
+        
+        // TF Weight
+        $tfWeightTable = $this->calculateTFWeight($tfTable, count($documents));
+        
+        // IDF
+        $idfTable = $this->calculateIDF($tfTable, count($documents));
 
-        foreach ($documents as &$document) {
-            $document['tf'] = $this->calculateTFWeights($document['tokens']);
-        }
-
-        // Menghitung IDF
-        $idf = $this->calculateIDF($documents);
-
-        $query = "Mencuri dan membunuh dengan senjata tajam.";
-
-        return view('sections.result', compact('documentsPasal', 'documents', 'query', 'idf'));
+        // TF-IDF
+        $tfidfTable = $this->calculateTFIDF($tfWeightTable, $idfTable, count($documents));
+        
+        // Cosine Similarity
+        $cosineSimilarities = $this->calculateCosineSimilarity($tfidfTable, count($documents));
+        
+        return view('sections.result', compact(
+            'documentsPasal',
+            'documents',
+            'query',
+            'preprocessedQuery',
+            'tfTable',
+            'tfWeightTable',
+            'idfTable',
+            'tfidfTable',
+            'cosineSimilarities'
+        ));
     }
-
 }
