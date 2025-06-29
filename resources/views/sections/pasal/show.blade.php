@@ -1,7 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-5xl mx-auto py-10 px-4">
+<div class="max-w-5xl mx-auto py-10 px-4 h-screen">
+    {{-- Page Title --}}
     {{-- Breadcrumb / Back Link --}}
     <div class="mb-6 flex items-center text-sm text-gray-500 space-x-2">
         <a href="{{ route('pasal.index') }}" class="text-blue-600 hover:underline font-medium">&larr; Kembali</a>

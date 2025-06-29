@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('query_id')->constrained()->cascadeOnDelete();
             $table->string('term');
             $table->integer('tf');
-            $table->double('tfidf');
+            $table->double('tfidf')->nullable()->default(null);
             $table->timestamps();
         });
     }

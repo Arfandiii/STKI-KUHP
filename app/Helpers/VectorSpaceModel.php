@@ -6,24 +6,40 @@ use App\Models\DocumentTerm;
 
 class VectorSpaceModel
 {
-    // Hitung TF-IDF pasal
-    public static function calculateTFIDF($tf, $totalDocuments = null)
+    /**
+     * Hitung TF (term frequency) dari daftar token.
+     * 
+     * @param  array  $tokens  Array hasil preprocessText()
+     * @return array           ['kata1' => 3, 'kata2' => 1, ...]
+     */
+    public static function calculateTF(array $tokens): array
     {
-        if ($totalDocuments === null) {
-            $totalDocuments = Pasal::count();
+        $tf = [];
+        foreach ($tokens as $term) {
+            if (isset($tf[$term])) {
+                $tf[$term]++;
+            } else {
+                $tf[$term] = 1;
+            }
         }
-
-        $tfidf = [];
-        foreach ($tf as $term => $count) {
-            // Hitung DF (Document Frequency)
-            $df = DocumentTerm::where('term', $term)->count();
-            // Hitung IDF
-            $idf = log10($totalDocuments / ($df + 1));
-            // Hitung TF-IDF
-            $tfidf[$term] = $count * $idf;
-        }
-
-        return $tfidf;
+        return $tf;
     }
+
+    /**
+     * Hitung TF-IDF dari term frequency.
+     * 
+     * @param  array  $tf  ['kata1' => 3, 'kata2' => 1, ...]
+     * @return array       ['kata1' => 3, 'kata2' => 1, ...]
+     */
+    public static function calculateIDF(int $totalDocs, array $allTerms): array
+    {
+        $idf = [];
+        foreach ($allTerms as $term => $df) {
+            $idf[$term] = $df > 0 ? log10($totalDocs / $df) : 0;
+        }
+        return $idf;
+    }
+
+    
     
 }

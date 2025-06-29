@@ -46,45 +46,32 @@ class PreprocessingController extends Controller
         }
     }
 
-    public function preprocessQuery(Request $request)
+    public static function preprocessQuery($query)
     {
-        // Validasi input
-        $request->validate([
-            'query' => 'required|string',
-        ]);
+        // 1. Simpan query
+        $queryCreate = Query::create(['user_input' => $query]);
 
-        // Ambil teks query dari request
-        $queryText = $request->input('query');
+        // 2. Preprocess query
+        $queryTokens = TextPreprocessing::preprocessText($query);
+        
+        // 3. Hitung TF query
+        $queryTF = VectorSpaceModel::calculateTF($queryTokens);
+        // dd($queryTF);
 
-        // Preprocessing query text
-        $processedTokens = TextPreprocessing::preprocessText($queryText);
-
-        // Hitung TF untuk setiap kata
-        $tf = array_count_values($processedTokens);
-
-        // Hitung TF-IDF
-        $tfidf = VectorSpaceModel::calculateTFIDF($tf);
-
-        // Simpan query ke database
-        $query = Query::create([
-            'user_input' => $queryText
-        ]);
-
-        // Simpan query terms ke database
-        foreach ($tfidf as $term => $score) {
+        $allPasal = Pasal::all();
+        // 4. Hitung TF-IDF query
+        $queryTFIDF = VectorSpaceModel::calculateIDF(count($allPasal), $queryTF);
+        
+        // 5. Simpan ke query_terms
+        foreach ($queryTF as $term => $count) {
             QueryTerm::create([
-                'query_id' => $query->id,
-                'term' => $term,
-                'tf' => $tf[$term],
-                'tfidf' => $score
+                'query_id' => $queryCreate->id,
+                'term'     => $term,
+                'tf'       => $count,
+                'tfidf'    => $queryTFIDF[$term]
             ]);
         }
-
-        // Redirect atau kirim respons
-        // return redirect()->back()->with('success', 'Query berhasil diproses.');
-        return response()->json(['message' => 'Preprocessing query completed.']);
     }
-
 
     public function getPasalDocuments()
     {

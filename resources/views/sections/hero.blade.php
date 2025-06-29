@@ -9,7 +9,7 @@
                 informasi
             </p>
             <div class="w-full max-w-lg text-center align-center mx-auto">
-                <form action="{{ route('process.query') }}" method="POST">
+                <form action="{{ route('pasal.process') }}" method="POST">
                     @csrf
                     <div class="flex items-center">
                         <input

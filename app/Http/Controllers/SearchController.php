@@ -25,20 +25,36 @@ class SearchController extends Controller
 
     public function search(Request $request)
     {
-        $query = $request->input('query');
-        
-        // Simpan keyword dalam session (agar tetap terbawa di paginate)
+        // Saat POST (submit pencarian baru)
         if ($request->isMethod('post')) {
-            session(['search_keyword' => $query]);
-        } else {
-            $query = session('search_keyword');
+            $query = $request->input('query');
+
+            if (empty($query)) {
+                return redirect()->route('pasal.index')->with('error', 'Inputan tidak boleh kosong.');
+            }
+
+            // Simpan keyword dan hasil preprocess ke session
+            session([
+                'search_keyword' => $query,
+                'search_preprocessed' => PreprocessingController::preprocessQuery($query)
+            ]);
+
+            // ✅ Redirect ke GET agar tidak ulang POST saat refresh
+            return redirect()->route('pasal.process');
         }
+
+        // Saat GET (misalnya dari redirect atau paginate)
+        $query = session('search_keyword');
+        $preprocessedQuery = session('search_preprocessed');
         
         if (empty($query)) {
             return redirect()->route('pasal.index')->with('error', 'Inputan tidak boleh kosong.');
         }
         // Cari pasal berdasarkan query
-        $results = Pasal::where('isi_pasal', 'like', '%' . $query . '%')->paginate(21);
+        $results = Pasal::with('bab')
+            ->where('isi_pasal', 'LIKE', '%' . $query . '%')
+            ->orderBy('id')
+            ->paginate(21);
 
         return view('sections.pasal.index', compact('results', 'query'));
     }
