@@ -12,7 +12,7 @@ class HistoryQueryController extends Controller
      */
     public function index()
     {
-        //
+        return view('admin.history.index');
     }
 
     /**

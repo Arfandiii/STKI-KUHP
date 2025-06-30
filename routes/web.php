@@ -6,6 +6,7 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\DataController;
+use App\Http\Controllers\Admin\HistoryQueryController;
 
 Route::get('/', function () { return view('welcome');})->name('home');
 Route::get('/#home', function () { return view('welcome');})->name('home');
@@ -34,6 +35,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('/profile/edit', [AdminDashboardController::class, 'edit'])->name('profile.edit');
     Route::post('/profile/update', [AdminDashboardController::class, 'update'])->name('profile.update');
     Route::post('/admin/password/update', [AdminDashboardController::class, 'updatePassword'])->name('dashboard.password.update');
+    route::get('/history', [HistoryQueryController::class, 'index'])->name('dashboard.history');
     Route::get('/data', [DataController::class, 'index'])->name('dashboard.data');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });

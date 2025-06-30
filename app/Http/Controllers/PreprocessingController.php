@@ -2,75 +2,124 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Pasal;
 use App\Models\DocumentTerm;
 use App\Helpers\TextPreprocessing;
 use App\Helpers\VectorSpaceModel;
 use App\Models\Query;
 use App\Models\QueryTerm;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
+
 
 class PreprocessingController extends Controller
 {
-    public function preprocessAllPasal()
+    private function storeTFIDF(int $pasalId, array $tokens, array $idfTable): void
     {
-        $pasals = Pasal::all();
+        // 1. Hitung Term Frequency
+        $tf = array_count_values($tokens);
 
-        foreach ($pasals as $pasal) {
-            $this->preprocessPasal($pasal);
-        }
-        
-        return response()->json(['message' => 'Preprocessing all pasal completed.']);
-    }
+        // 2. Buat mapping IDF
+        $idfMap = array_column($idfTable, 'idf', 'term');
 
-    private function preprocessPasal($pasal)
-    {
-        // Ambil isi pasal
-        $content = $pasal->isi_pasal;
+        // 3. Simpan ke tabel document_terms
+        foreach ($tf as $term => $count) {
+            $tfWeight = $count > 0 ? round(1 + log10($count), 4) : 0;
+            $idf = $idfMap[$term] ?? 0;
+            $tfidf = round($tfWeight * $idf, 4);
 
-        // Lakukan preprocessing menggunakan helper
-        $processedTokens = TextPreprocessing::preprocessText($content);
-
-        // Hitung TF untuk setiap kata
-        $tf = array_count_values($processedTokens);
-
-        // Hitung TF-IDF menggunakan helper
-        $tfidf = VectorSpaceModel::calculateTFIDF($tf);
-
-        // Simpan ke database
-        foreach ($tfidf as $term => $score) {
             DocumentTerm::updateOrCreate(
-                ['pasal_id' => $pasal->id, 'term' => $term],
-                ['tf' => $tf[$term], 'tfidf' => $score]
+                ['pasal_id' => $pasalId, 'term' => $term],
+                ['tf' => $count, 'tfidf' => $tfidf]
             );
         }
     }
 
-    public static function preprocessQuery($query)
+    public function preprocessAllPasal()
     {
-        // 1. Simpan query
-        $queryCreate = Query::create(['user_input' => $query]);
+        $pasals = Pasal::all();
+        $tokenMap = [];
 
-        // 2. Preprocess query
+        // 1. Preprocess semua pasal
+        foreach ($pasals as $pasal) {
+            $tokenMap[$pasal->id] = TextPreprocessing::preprocessText($pasal->isi_pasal);
+        }
+
+        // 2. Buat format dokumen untuk TF & IDF
+        $documentList = collect($tokenMap)->map(fn($tokens) => ['tokens' => $tokens])->values()->all();
+        $docCount = count($documentList);
+
+        // 3. Hitung TF, TF Weight, dan IDF global
+        $vsm = new VectorSpaceModel();
+        $tfTable = $vsm->calculateTermFrequencies($documentList, []);
+        $tfWeightTable = $vsm->calculateTFWeight($tfTable, $docCount);
+        $idfTable = $vsm->calculateIDF($tfTable, $docCount);
+
+        // 4. Proses dan simpan TF-IDF untuk masing-masing pasal
+        foreach ($pasals as $pasal) {
+            $tokens = $tokenMap[$pasal->id];
+            $this->storeTFIDF($pasal->id, $tokens, $idfTable);
+        }
+
+        return response()->json(['message' => 'Preprocessing all pasal completed.']);
+    }
+
+    public static function preprocessQuery(string $query): array
+    {
+        // 1. Simpan query ke database
+        $queryModel = Query::create(['user_input' => $query]);
+        
+        // 2. Preprocessing: tokenize, stopword removal, stemming
         $queryTokens = TextPreprocessing::preprocessText($query);
         
-        // 3. Hitung TF query
-        $queryTF = VectorSpaceModel::calculateTF($queryTokens);
-        // dd($queryTF);
-
-        $allPasal = Pasal::all();
-        // 4. Hitung TF-IDF query
-        $queryTFIDF = VectorSpaceModel::calculateIDF(count($allPasal), $queryTF);
+        // 3. Hitung Term Frequency (TF) dari query
+        $queryTF = array_count_values($queryTokens);
+        $terms   = array_keys($queryTF);
         
-        // 5. Simpan ke query_terms
-        foreach ($queryTF as $term => $count) {
-            QueryTerm::create([
-                'query_id' => $queryCreate->id,
-                'term'     => $term,
-                'tf'       => $count,
-                'tfidf'    => $queryTFIDF[$term]
-            ]);
-        }
+        // 4. Ambil IDF global untuk hanya term yang muncul di query (cached)
+        $totalDocs = Pasal::count();
+        $key = 'idf_map:' . md5(implode('|', $terms));
+        $idfMap = Cache::remember(
+            $key,
+            now()->addMinutes(10),
+            function () use ($terms, $totalDocs) {
+                return DB::table('document_terms')
+                ->select('term', DB::raw('COUNT(DISTINCT pasal_id) as df'))
+                ->whereIn('term', $terms)
+                ->groupBy('term')
+                ->get()
+                ->mapWithKeys(function ($row) use ($totalDocs) {
+                    $idf = $row->df > 0 ? round(log10($totalDocs / $row->df), 4) : 0;
+                    return [$row->term => $idf];
+                })
+                ->toArray();
+            }
+        );
+        
+        // 5. Hitung dan simpan TF, TF-weight, dan TF-IDF ke query_terms,
+        //    sekaligus kumpulkan vektor TF-IDF untuk return
+        $queryTFIDF = [];
+
+        DB::transaction(function () use (&$queryTFIDF, $queryModel, $queryTF, $idfMap) {
+            foreach ($queryTF as $term => $count) {
+                $tfWeight = $count > 0 ? round(1 + log10($count), 4) : 0;
+                $idf = $idfMap[$term] ?? 0;
+                $tfidf = round($tfWeight * $idf, 4);
+        
+                QueryTerm::updateOrCreate(
+                    ['query_id' => $queryModel->id, 'term' => $term],
+                    ['tf' => $count, 'tfidf' => $tfidf]
+                );
+        
+                $queryTFIDF[$term] = $tfidf;
+            }
+        });
+
+        // 6. Kembalikan vektor TF-IDF query dan daftar term
+        return [
+            'tfidf' => $queryTFIDF,     // e.g. ['pidana' => 0.301, 'penjara' => 0.477, …]
+            'terms' => $terms           // e.g. ['pidana','penjara',…]
+        ];
     }
 
     public function getPasalDocuments()
@@ -101,168 +150,6 @@ class PreprocessingController extends Controller
         return $documents;
     }
 
-    public function calculateTermFrequencies($documents, $queryTokens)
-    {
-        $allTerms = [];
-
-        // Kumpulkan semua term unik dari dokumen
-        foreach ($documents as $doc) {
-            foreach ($doc['tokens'] as $term) {
-                $allTerms[] = $term;
-            }
-        }
-
-        // Tambahkan juga dari query
-        foreach ($queryTokens as $term) {
-            $allTerms[] = $term;
-        }
-
-        $uniqueTerms = array_values(array_unique($allTerms));
-
-        $tfTable = [];
-
-        foreach ($uniqueTerms as $term) {
-            $row = ['term' => $term];
-
-            // Hitung TF untuk tiap dokumen
-            foreach ($documents as $index => $doc) {
-                $count = array_count_values($doc['tokens'])[$term] ?? 0;
-                $row["D" . ($index + 1)] = $count;
-            }
-
-            // Hitung TF untuk query
-            $row["Q"] = array_count_values($queryTokens)[$term] ?? 0;
-
-            $tfTable[] = $row;
-        }
-
-        return $tfTable;
-    }
-
-    public function calculateTFWeight($tfTable, $docCount)
-    {
-        $tfWeightTable = [];
-
-        foreach ($tfTable as $row) {
-            $newRow = ['term' => $row['term']];
-
-            // Proses setiap dokumen
-            for ($i = 1; $i <= $docCount; $i++) {
-                $tf = $row["D$i"];
-                $newRow["D$i"] = $tf > 0 ? round(1 + log10($tf), 4) : 0;
-            }
-
-            // Proses Query
-            $tfQ = $row['Q'];
-            $newRow['Q'] = $tfQ > 0 ? round(1 + log10($tfQ), 4) : 0;
-
-            $tfWeightTable[] = $newRow;
-        }
-
-        return $tfWeightTable;
-    }
-
-    public function calculateIDF($tfTable, $docCount)
-    {
-        $idfTable = [];
-
-        foreach ($tfTable as $row) {
-            $term = $row['term'];
-
-            // Hitung DF (jumlah dokumen yang memiliki term ini)
-            $df = 0;
-            for ($i = 1; $i <= $docCount; $i++) {
-                if ($row["D$i"] > 0) {
-                    $df++;
-                }
-            }
-
-            // Hitung IDF (hindari pembagian nol)
-            // $idf = $df > 0 ? round(log10($docCount / $df), 4) : 0;
-
-            $idf = log10(($docCount + 1) / ($df + 1)) + 1;
-
-            $idfTable[] = [
-                'term' => $term,
-                'df' => $df,
-                'idf' => $idf
-            ];
-        }
-
-        return $idfTable;
-    }
-
-
-    public function calculateTFIDF($tfWeightTable, $idfTable, $docCount)
-    {
-        $tfidfTable = [];
-
-        foreach ($tfWeightTable as $tfRow) {
-            $term = $tfRow['term'];
-
-            // Cari IDF dari term ini
-            $idfMap = array_column($idfTable, 'idf', 'term');
-            // …
-            $idf = $idfMap[$term] ?? 0;
-
-            $row = ['term' => $term];
-
-            // Kalikan TF Weight * IDF untuk tiap dokumen
-            for ($i = 1; $i <= $docCount; $i++) {
-                $tfWeight = $tfRow["D$i"];
-                $row["D$i"] = round($tfWeight * $idf, 4);
-            }
-
-            // Kalikan untuk Query
-            $tfWeightQ = $tfRow["Q"];
-            $row["Q"] = round($tfWeightQ * $idf, 4);
-
-            $tfidfTable[] = $row;
-        }
-
-        return $tfidfTable;
-    }
-
-    public function calculateCosineSimilarity($tfidfTable, $docCount)
-    {
-        $similarities = [];
-
-        // Hitung panjang vektor Query
-        $queryVectorLength = 0;
-        foreach ($tfidfTable as $row) {
-            $queryVectorLength += pow($row['Q'], 2);
-        }
-        $queryVectorLength = sqrt($queryVectorLength);
-
-        // Hitung cosine similarity dengan tiap dokumen
-        for ($i = 1; $i <= $docCount; $i++) {
-            $dotProduct = 0;
-            $docVectorLength = 0;
-
-            foreach ($tfidfTable as $row) {
-                $docVal = $row["D$i"];
-                $queryVal = $row["Q"];
-
-                $dotProduct += $docVal * $queryVal;
-                $docVectorLength += pow($docVal, 2);
-            }
-
-            $docVectorLength = sqrt($docVectorLength);
-
-            // Hindari pembagian nol
-            $cosine = ($queryVectorLength > 0 && $docVectorLength > 0)
-                ? round($dotProduct / ($queryVectorLength * $docVectorLength), 4)
-                : 0;
-
-            $similarities[] = [
-                'doc' => "D$i",
-                'similarity' => $cosine
-            ];
-        }
-
-        return $similarities;
-    }
-
     public function resultPreprocessing()
     {
         // Ambil dokumen pasal
@@ -274,19 +161,19 @@ class PreprocessingController extends Controller
         $preprocessedQuery = TextPreprocessing::preprocessText($query);
         
         // TF
-        $tfTable = $this->calculateTermFrequencies($documents, $preprocessedQuery);
+        $tfTable = VectorSpaceModel::calculateTermFrequencies($documents, $preprocessedQuery);
         
         // TF Weight
-        $tfWeightTable = $this->calculateTFWeight($tfTable, count($documents));
+        $tfWeightTable = VectorSpaceModel::calculateTFWeight($tfTable, count($documents));
         
         // IDF
-        $idfTable = $this->calculateIDF($tfTable, count($documents));
+        $idfTable = VectorSpaceModel::calculateIDF($tfTable, count($documents));
 
         // TF-IDF
-        $tfidfTable = $this->calculateTFIDF($tfWeightTable, $idfTable, count($documents));
+        $tfidfTable = VectorSpaceModel::calculateTFIDF($tfWeightTable, $idfTable, count($documents));
         
         // Cosine Similarity
-        $cosineSimilarities = $this->calculateCosineSimilarity($tfidfTable, count($documents));
+        $cosineSimilarities = VectorSpaceModel::calculateCosineSimilarity($tfidfTable, count($documents));
         
         return view('sections.result', compact(
             'documentsPasal',

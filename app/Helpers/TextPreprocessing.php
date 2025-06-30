@@ -19,13 +19,6 @@ class TextPreprocessing
         'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
     ];
 
-    private static $termCorrections = [
-        'dar' => 'sekedar',
-        'aju' => 'ajukan',
-        'pasu' => 'pasukan',
-    ];
-    
-
     /**
      * Inisialisasi Sastrawi (Stopword Remover & Stemmer)
      */
@@ -57,9 +50,6 @@ class TextPreprocessing
 
         // 4. Tokenisasi dengan split by spasi (karena simbol sudah dibersihkan)
         return preg_split('/\s+/', $text, -1, PREG_SPLIT_NO_EMPTY);
-        // Case Folding dan Tokenizing
-        // $text = strtolower($text);
-        // return preg_split('/[\s,\.!?;:()"\'-]+/', $text, -1, PREG_SPLIT_NO_EMPTY);
     }
 
 
@@ -72,9 +62,6 @@ class TextPreprocessing
         return array_filter($tokens, function ($token) {
             return preg_match('/^[a-z]+$/', $token) && mb_strlen($token) > 2;
         });
-        // return array_filter($tokens, function ($token) {
-        //     return preg_match('/^[a-z]+$/', $token) && strlen($token) > 2;
-        // });
     }
 
     /**
@@ -87,9 +74,6 @@ class TextPreprocessing
             $cleaned = self::$stopWordRemover->remove($token);
             return !in_array($cleaned, self::$customStopwords) ? $cleaned : '';
         }, $tokens));
-        // return array_map(function($token) {
-        //     return self::$stopWordRemover->remove($token);
-        // }, $tokens);
     }
 
 
@@ -98,20 +82,11 @@ class TextPreprocessing
      */
     public static function stemTokens($tokens)
     {
-
-        // Stemming token dan hapus token kosong
-        return array_filter(array_map(function ($token) {
-            $stemmed = self::$stemmer->stem($token);
-            // koreksi jika term ada dalam daftar koreksi
-            return self::$termCorrections[$stemmed] ?? $stemmed;
-        }, $tokens), function ($token) {
+        return array_filter(array_map(function($token) {
+            return self::$stemmer->stem($token);
+        }, $tokens), function($token) {
             return $token !== '';
         });
-        // return array_filter(array_map(function($token) {
-        //     return self::$stemmer->stem($token);
-        // }, $tokens), function($token) {
-        //     return $token !== '';
-        // });
     }
 
 
