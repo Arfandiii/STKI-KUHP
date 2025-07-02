@@ -44,11 +44,42 @@
             </table>
         </div>
     </div>
-
-
+    <div class="p-6 max-w-7xl mx-auto">
+        <h1 class="text-2xl font-bold mb-4">2. Hasil Preprocessing Pasal</h1>
+        <div class="overflow-x-auto">
+            <table class="min-w-full border text-sm divide-y divide-gray-200">
+                <thead class="bg-red-800 text-white">
+                    <tr>
+                        <th class="border p-3 font-semibold text-center">No</th>
+                        <th class="border p-3 font-semibold text-center">Pasal</th>
+                        <th class="border p-3 font-semibold">Isi</th>
+                        <th class="border p-3 font-semibold">Tokenizing</th>
+                        <th class="border p-3 font-semibold">Filtering</th>
+                        <th class="border p-3 font-semibold">Stopword Removal</th>
+                        <th class="border p-3 font-semibold">Stemming</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-100">
+                    @foreach ($documentsdetailed as $idx => $doc)
+                    <tr class="hover:bg-blue-50 transition">
+                        <td class="border p-3 text-center">{{ $idx + 1 }}</td>
+                        <td class="border p-3 text-center">{{ $doc['pasal'] }}</td>
+                        <td class="border p-3">{{ $doc['isi'] }}</td>
+                        <td class="border p-3">| {{ implode(' | ', $doc['preprocessing']['case_folding_and_tokenizing'])
+                            }} |
+                        </td>
+                        <td class="border p-3">| {{ implode(' | ', $doc['preprocessing']['filtering']) }} |</td>
+                        <td class="border p-3">| {{ implode(' | ', $doc['preprocessing']['stopword_removal']) }} |</td>
+                        <td class="border p-3">| {{ implode(' | ', $doc['preprocessing']['stemming']) }} |</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
     <!-- TABEL: TOKENS-->
     <div class="bg-white shadow rounded-lg p-6 mt-10 overflow-x-auto">
-        <h2 class="text-2xl font-bold mb-4">2. Tokens per Pasal</h2>
+        <h2 class="text-2xl font-bold mb-4">3. Tokens per Pasal</h2>
         <div class="overflow-x-auto">
             <table class="min-w-full border text-sm divide-y divide-gray-200">
                 <thead class="bg-red-800 text-white divide-y divide-gray-600">
@@ -87,7 +118,7 @@
 
     <!-- TABEL: TF -->
     <div class="bg-white shadow rounded-lg p-6 mt-10 overflow-x-auto">
-        <h2 class="text-2xl font-bold mb-4">3. Term Frequency (TF)</h2>
+        <h2 class="text-2xl font-bold mb-4">4. Term Frequency (TF)</h2>
         <div class="overflow-x-auto">
             <table class="min-w-full border text-sm divide-y divide-gray-200">
                 <thead class="bg-red-800 text-white">
@@ -119,7 +150,7 @@
 
     <!-- TABEL: TF Weight -->
     <div class="bg-white shadow rounded-lg p-6 mt-10 overflow-x-auto">
-        <h2 class="text-2xl font-bold mb-4">4. Term Frequency Weight (TF Weight)</h2>
+        <h2 class="text-2xl font-bold mb-4">5. Term Frequency Weight (TF Weight)</h2>
 
         <div class="overflow-x-auto">
             <table class="min-w-full border text-sm divide-y divide-gray-200">
@@ -153,7 +184,7 @@
 
     <!-- TABEL: DF & IDF -->
     <div class="bg-white shadow rounded-lg p-6 mt-10 overflow-x-auto">
-        <h2 class="text-2xl font-bold mb-4">5. Document Frequency (DF) dan Inverse Document Frequency (IDF)</h2>
+        <h2 class="text-2xl font-bold mb-4">6. Document Frequency (DF) dan Inverse Document Frequency (IDF)</h2>
 
         <div class="overflow-x-auto">
             <table class="min-w-full border text-sm divide-y divide-gray-200">
@@ -179,7 +210,7 @@
 
     <!-- TABEL: TF-IDF -->
     <div class="bg-white shadow rounded-lg p-6 mt-10 overflow-x-auto">
-        <h2 class="text-2xl font-bold mb-4">6. TF-IDF</h2>
+        <h2 class="text-2xl font-bold mb-4">7. TF-IDF</h2>
 
         <div class="overflow-x-auto">
             <table class="min-w-full border text-sm divide-y divide-gray-200">
@@ -212,7 +243,7 @@
 
     <!-- TABEL: Cosine Similarity -->
     <div class="bg-white shadow rounded-lg p-6 mt-10 overflow-x-auto">
-        <h2 class="text-2xl font-bold mb-4">7. Cosine Similarity</h2>
+        <h2 class="text-2xl font-bold mb-4">8. Cosine Similarity</h2>
 
         <div class="overflow-x-auto">
             <table class="min-w-full border text-sm divide-y divide-gray-200">

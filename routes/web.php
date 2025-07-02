@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\BABKuhpController;
+use App\Http\Controllers\Admin\BukuKuhpController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PreprocessingController;
 use App\Http\Controllers\SearchController;
@@ -7,6 +9,7 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\DataController;
 use App\Http\Controllers\Admin\HistoryQueryController;
+use App\Http\Controllers\Admin\PasalKuhpController;
 
 Route::get('/', function () { return view('welcome');})->name('home');
 Route::get('/#home', function () { return view('welcome');})->name('home');
@@ -37,5 +40,8 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::post('/admin/password/update', [AdminDashboardController::class, 'updatePassword'])->name('dashboard.password.update');
     route::get('/history', [HistoryQueryController::class, 'index'])->name('dashboard.history');
     Route::get('/data', [DataController::class, 'index'])->name('dashboard.data');
+    Route::resource('buku-kuhp', BukuKuhpController::class);
+    Route::resource('bab-kuhp', BABKuhpController::class);
+    Route::resource('pasal-kuhp', PasalKuhpController::class);
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });

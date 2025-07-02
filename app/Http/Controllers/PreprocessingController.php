@@ -150,11 +150,26 @@ class PreprocessingController extends Controller
         return $documents;
     }
 
+    public function preprocessPasalDocumentsDetailed()
+    {
+        $documents = $this->getPasalDocuments();
+
+        foreach ($documents as &$document) {
+            $preprocessingResult = TextPreprocessing::preprocessTextDetailed($document['isi']);
+
+            $document['preprocessing'] = $preprocessingResult;
+        }
+
+        return $documents;
+    }
+
+
     public function resultPreprocessing()
     {
         // Ambil dokumen pasal
         $documentsPasal = $this->getPasalDocuments();
         $documents = $this->preprocessPasalDocuments();
+        $documentsdetailed = $this->preprocessPasalDocumentsDetailed();
         
         // Contoh query yang akan diproses
         $query = "Terpidana melarikan diri dari tempat pidana penjara.";
@@ -184,7 +199,8 @@ class PreprocessingController extends Controller
             'tfWeightTable',
             'idfTable',
             'tfidfTable',
-            'cosineSimilarities'
+            'cosineSimilarities',
+            'documentsdetailed'
         ));
     }
 }

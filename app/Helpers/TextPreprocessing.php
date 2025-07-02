@@ -46,9 +46,9 @@ class TextPreprocessing
         $text = preg_replace('/\b[0-9]+[\.\)]/', '', $text);
 
         // 3. Hilangkan simbol lain yang tidak relevan (misal tanda titik koma ganda, tanda petik ganda, dll)
-        $text = preg_replace('/[^\p{L}\s]+/u', ' ', $text); // hanya huruf dan spasi (Unicode-aware)
+        $text = preg_replace('/[^\p{L}\s]+/u', ' ', $text);
 
-        // 4. Tokenisasi dengan split by spasi (karena simbol sudah dibersihkan)
+        // 4. Tokenisasi dengan split berdasarkan spasi (karena simbol sudah dibersihkan)
         return preg_split('/\s+/', $text, -1, PREG_SPLIT_NO_EMPTY);
     }
 
@@ -109,4 +109,29 @@ class TextPreprocessing
         // 5. Kembalikan hasil akhir
         return $stemmedTokens;
     }
+
+    public static function preprocessTextDetailed($text)
+    {
+        self::ensureInitialized();
+
+        // 1. Tokenize (dengan case folding)
+        $tokens = self::tokenize($text);
+
+        // 2. Filter
+        $filtered = self::filterTokens($tokens);
+
+        // 3. Remove stopwords
+        $noStopwords = self::removeStopwords($filtered);
+
+        // 4. Stemming
+        $stemmed = self::stemTokens($noStopwords);
+
+        return [
+            'case_folding_and_tokenizing' => $tokens,
+            'filtering' => array_values($filtered),
+            'stopword_removal' => array_values($noStopwords),
+            'stemming' => array_values($stemmed),
+        ];
+    }
+
 }
