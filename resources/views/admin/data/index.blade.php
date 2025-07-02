@@ -129,9 +129,11 @@
                                 <tbody class="text-gray-700">
                                     @foreach ($DataBab as $bab)
                                     <tr class="border-b">
-                                        <td class="py-5 px-6">{{ $loop->iteration }}</td>
-                                        <td class="py-5 px-6 whitespace-normal break-words">{{ $bab->buku->judul }}</td>
-                                        <td class="py-5 px-6 whitespace-normal break-words">{{ $bab->nomor_bab }}</td>
+                                        <td class="py-5 px-6">{{ (($DataBab->currentPage() - 1) *
+                                            $DataBab->perPage()) +
+                                            $loop->iteration }}</td>
+                                        <td class="py-5 px-6">{{ $bab->buku->judul }}</td>
+                                        <td class="py-5 px-6">{{ $bab->nomor_bab }}</td>
                                         <td class="py-5 px-6">{{ $bab->label_bab }}</td>
                                         <td class="py-5 px-6">
                                             <div class="flex space-x-3">
@@ -209,7 +211,7 @@
                                         <th class="text-left py-5 px-6 font-semibold text-gray-600">No</th>
                                         <th class="text-left py-5 px-6 font-semibold text-gray-600">Buku</th>
                                         <th class="text-left py-5 px-6 font-semibold text-gray-600">BAB</th>
-                                        <th class="text-left py-5 px-6 font-semibold text-gray-600">Pasal</th>
+                                        <th class="text-left py-5 pe-20 font-semibold text-gray-600">Pasal</th>
                                         <th class="text-left py-5 px-6 font-semibold text-gray-600">Isi Pasal</th>
                                         <th class="text-left py-5 px-6 font-semibold text-gray-600">Aksi</th>
                                     </tr>
@@ -217,14 +219,16 @@
                                 <tbody class="text-gray-700">
                                     @foreach ($DataPasal as $pasal)
                                     <tr class="border-b">
-                                        <td class="py-5 px-6">{{ $loop->iteration }}</td>
-                                        <td class="py-5 px-6 whitespace-normal break-words">{{ $pasal->bab->buku->judul
+                                        <td class="py-5 px-6">{{ (($DataPasal->currentPage() - 1) *
+                                            $DataPasal->perPage()) +
+                                            $loop->iteration }}</td>
+                                        <td class="py-5 px-6">{{ $pasal->bab->buku->judul
                                             }}
                                         </td>
-                                        <td class="py-5 px-6 whitespace-normal break-words">{{ $pasal->bab->nomor_bab }}
+                                        <td class="py-5 px-6">{{ $pasal->bab->nomor_bab }}
                                             {{
                                             $pasal->bab->label_bab }}</td>
-                                        <td class="py-5 px-6">{{ $pasal->nomor_pasal }}</td>
+                                        <td class="py-5 pe-6">{{ $pasal->nomor_pasal }}</td>
                                         <td class="py-5 px-6">
                                             {{ Str::limit(strip_tags($pasal->isi_pasal), 200, '...') }}
                                         </td>
@@ -233,8 +237,9 @@
                                                 <!-- Manage Button -->
                                                 <div class="relative before:content-[attr(data-tip)] before:absolute before:px-2 before:py-1 before:left-1/2 before:-top-3 before:w-max before:max-w-xs before:-translate-x-1/2 before:-translate-y-full before:bg-gray-700 before:text-white before:rounded-md before:opacity-0 before:transition-all after:absolute after:left-1/2 after:-top-3 after:h-0 after:w-0 after:-translate-x-1/2 after:border-8 after:border-t-gray-700 after:border-l-transparent after:border-b-transparent after:border-r-transparent after:opacity-0 after:transition-all hover:before:opacity-100 hover:after:opacity-100"
                                                     data-tip="Manage Pasal">
-                                                    <a href="#"
-                                                        class="flex items-center justify-center w-9 h-9 text-white transition-colors duration-150 rounded-full bg-blue-600 hover:bg-blue-500">
+                                                    <a href="{{ route('admin.pasal-kuhp.show', $pasal->id) }}" class="flex items-center justify-center w-9 h-9 text-white
+                                                        transition-colors duration-150 rounded-full bg-blue-600
+                                                        hover:bg-blue-500">
                                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                                                             fill="currentColor" class="size-5 fill-current">
                                                             <path fill-rule="evenodd"
@@ -246,7 +251,7 @@
                                                 <!-- Edit Button -->
                                                 <div class="relative before:content-[attr(data-tip)] before:absolute before:px-2 before:py-1 before:left-1/2 before:-top-3 before:w-max before:max-w-xs before:-translate-x-1/2 before:-translate-y-full before:bg-gray-700 before:text-white before:rounded-md before:opacity-0 before:transition-all after:absolute after:left-1/2 after:-top-3 after:h-0 after:w-0 after:-translate-x-1/2 after:border-8 after:border-t-gray-700 after:border-l-transparent after:border-b-transparent after:border-r-transparent after:opacity-0 after:transition-all hover:before:opacity-100 hover:after:opacity-100"
                                                     data-tip="Edit Pasal">
-                                                    <a href="#"
+                                                    <a href="{{ route('admin.pasal-kuhp.edit', $pasal->id) }}"
                                                         class="flex items-center justify-center w-9 h-9 text-white transition-colors duration-150 rounded-full bg-green-600 hover:bg-green-500">
                                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                                                             fill="currentColor" class="size-5 fill-current">
@@ -257,7 +262,8 @@
                                                         </svg>
                                                     </a>
                                                 </div>
-                                                <form action="#" method="POST" class="inline-block ml-2">
+                                                <form action="{{ route('admin.pasal-kuhp.destroy', $pasal->id) }}"
+                                                    method="POST" class="inline-block ml-2">
                                                     @csrf
                                                     @method('DELETE')
                                                     <div class="relative before:content-[attr(data-tip)] before:absolute before:px-2 before:py-1 before:left-1/2 before:-top-3 before:w-max before:max-w-xs before:-translate-x-1/2 before:-translate-y-full before:bg-gray-700 before:text-white before:rounded-md before:opacity-0 before:transition-all after:absolute after:left-1/2 after:-top-3 after:h-0 after:w-0 after:-translate-x-1/2 after:border-8 after:border-t-gray-700 after:border-l-transparent after:border-b-transparent after:border-r-transparent after:opacity-0 after:transition-all hover:before:opacity-100 hover:after:opacity-100"

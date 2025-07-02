@@ -4,7 +4,12 @@
 <div class="content ml-12 transform ease-in-out duration-500 pt-20 px-2 md:px-5 pb-4">
     <div class="p-6 my-10 mx-auto bg-white rounded-lg shadow-md">
         <div class="flex flex-wrap w-full my-5 mx-auto">
-            <h2 class="font-bold mb-2 text-center text-3xl">Ubah data BAB KUHP</h2>
+            <div class="mb-6 flex items-center text-sm text-gray-900 space-x-2">
+                <a href="{{ route('admin.dashboard.data') }}" class="text-blue-600 hover:underline font-medium">&larr;
+                    Kembali</a>
+                <span>/</span>
+                <h2 class="font-bold mb-2 text-center text-3xl">Ubah BAB KUHP</h2>
+            </div>
             <form action="{{ route('admin.bab-kuhp.update', $bab_kuhp->id) }}" method="POST"
                 class="flex flex-col gap-4 w-full my-5 mx-auto">
                 @csrf

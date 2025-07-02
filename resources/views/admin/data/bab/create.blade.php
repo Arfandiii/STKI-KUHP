@@ -4,12 +4,17 @@
 <div class="content ml-12 transform ease-in-out duration-500 pt-20 px-2 md:px-5 pb-4">
     <div class="p-6 my-10 mx-auto bg-white rounded-lg shadow-md">
         <div class="flex flex-wrap w-full my-5 mx-auto">
-            <h2 class="font-bold mb-2 text-center text-3xl">Tambah BAB KUHP</h2>
+            <div class="mb-6 flex items-center text-sm text-gray-900 space-x-2">
+                <a href="{{ route('admin.dashboard.data') }}" class="text-blue-600 hover:underline font-medium">&larr;
+                    Kembali</a>
+                <span>/</span>
+                <h2 class="font-bold mb-2 text-center text-3xl">Tambah BAB KUHP</h2>
+            </div>
             <form action="{{ route('admin.bab-kuhp.store') }}" method="POST"
                 class="flex flex-col gap-4 w-full my-5 mx-auto">
                 @csrf
                 <div class="mb-2">
-                    <label for="buku_id" class="block mb-2 text-lg font-medium text-gray-900 dark:text-white">Pilih Buku
+                    <label for="buku_id" class="block mb-2 text-lg font-medium text-gray-900 dark:text-white">Buku
                         KUHP</label>
                     <select name="buku_id" id="buku_id" required
                         class="bg-gray-50 focus:outline-none focus:ring-1 border border-indigo-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
