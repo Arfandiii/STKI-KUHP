@@ -61,7 +61,7 @@ class PreprocessingController extends Controller
             $this->storeTFIDF($pasal->id, $tokens, $idfTable);
         }
 
-        return response()->json(['message' => 'Preprocessing all pasal completed.']);
+        return redirect()->back()->with('success', 'Preprocessing semua pasal selesai.');
     }
 
     public static function preprocessQuery(string $query): array

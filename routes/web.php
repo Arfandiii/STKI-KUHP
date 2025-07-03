@@ -28,7 +28,7 @@ Route::middleware(['guest'])->group(function () {
 });
 
 Route::get('/result', [PreprocessingController::class, 'resultPreprocessing'])->name('result');
-Route::get('/preprocess-all-pasal', [PreprocessingController::class, 'preprocessAllPasal']);
+Route::get('/preprocess-all-pasal', [PreprocessingController::class, 'preprocessAllPasal'])->name('preprocess.all');
 Route::post('/process-query', [PreprocessingController::class, 'preprocessQuery'])->name('process.query');
 
 Route::get('/pasal', [SearchController::class, 'index'])->name('pasal.index');

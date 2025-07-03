@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use App\Helpers\TextPreprocessing;
 use App\Models\DocumentTerm;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 
 class DataController extends Controller
 {
@@ -19,8 +20,10 @@ class DataController extends Controller
         $search = $request->input('q');
 
         $DataBuku = Buku::all();
-        // Logika untuk Data Bab dengan pencarian dan filter
-        if ($filter === 'dataBab' || $filter === 'all') {
+        $hasSimilarity = false;
+
+        // ======== Handle DataBab ========
+        if ($filter === 'dataBab') {
             if ($search) {
                 $DataBab = Bab::where('nomor_bab', 'LIKE', '%' . $search . '%')
                             ->orWhere('label_bab', 'LIKE', '%' . $search . '%')
@@ -28,30 +31,29 @@ class DataController extends Controller
             } else {
                 $DataBab = Bab::paginate(10);
             }
+        } elseif ($filter === 'all') {
+            // Tampilkan semua tanpa pencarian (BAB)
+            $DataBab = Bab::paginate(10);
         } else {
-            $DataBab = collect(); // atau nilai default lainnya
+            $DataBab = collect(); // Kosongkan jika tidak dibutuhkan
         }
-        
-        // Logika untuk Data Pasal dengan pencarian dan filter
-        if ($filter === 'dataPasal' || $filter === 'all') {
-            $hasSimilarity = false;
-            if ($search) {
-                // Preprocessing dan perhitungan TF-IDF Query
-                $preprocessed = $this->preprocessQuery($search);
 
-                // Ambil TF-IDF hasil preprocessing query
+        // ======== Handle DataPasal ========
+        if ($filter === 'dataPasal') {
+            if ($search) {
+                // 1. Preprocessing Query
+                $preprocessed = $this->preprocessQuery($search);
                 $queryTfidf = $preprocessed['tfidf'];
                 $terms = array_keys($queryTfidf);
 
-                // Hitung panjang vektor query
                 $queryLength = sqrt(array_sum(array_map(fn($val) => $val ** 2, $queryTfidf)));
 
-                // Ambil semua document_terms yang memiliki term dari query
+                // 2. Ambil dokumen term yang relevan
                 $docTerms = DocumentTerm::whereIn('term', $terms)
                     ->get(['pasal_id', 'term', 'tfidf'])
                     ->groupBy('pasal_id');
 
-                // Hitung cosine similarity
+                // 3. Hitung cosine similarity
                 $similarities = [];
                 foreach ($docTerms as $pasalId => $rows) {
                     $dot = 0;
@@ -76,17 +78,17 @@ class DataController extends Controller
                     }
                 }
 
-                // Urutkan berdasarkan similarity tertinggi
+                // 4. Urutkan berdasarkan similarity tertinggi
                 usort($similarities, fn($a, $b) => $b['similarity'] <=> $a['similarity']);
                 $ids = array_column($similarities, 'pasal_id');
 
-                // Ambil data Pasal yang cocok dari database
+                // 5. Ambil data pasal yang relevan
                 $pasals = Pasal::with('bab.buku')
                     ->whereIn('id', $ids)
                     ->get()
                     ->keyBy('id');
 
-                // Gabungkan hasil similarity dengan model Pasal
+                // 6. Gabungkan pasal dengan nilai similarity
                 $results = [];
                 foreach ($similarities as $item) {
                     $pasal = $pasals[$item['pasal_id']] ?? null;
@@ -96,13 +98,13 @@ class DataController extends Controller
                     }
                 }
 
-                // Paginasi manual
+                // 7. Paginasi manual hasil similarity
                 $page = $request->input('page', 1);
                 $perPage = 10;
                 $offset = ($page - 1) * $perPage;
 
                 $pagedResults = array_slice($results, $offset, $perPage);
-                $paginator = new LengthAwarePaginator(
+                $DataPasal = new LengthAwarePaginator(
                     $pagedResults,
                     count($results),
                     $perPage,
@@ -110,14 +112,32 @@ class DataController extends Controller
                     ['path' => $request->url(), 'query' => $request->query()]
                 );
                 $hasSimilarity = count($similarities) > 0;
-                $DataPasal = $paginator;
+
             } else {
                 $DataPasal = Pasal::paginate(10);
             }
+        } elseif ($filter === 'all') {
+            // Tampilkan semua tanpa pencarian (Pasal)
+            $DataPasal = Pasal::paginate(10);
         } else {
-            $DataPasal = collect();
+            $DataPasal = collect(); // Kosongkan jika tidak dibutuhkan
         }
-        return view('admin.data.index', compact('DataBuku', 'DataBab', 'DataPasal', 'filter', 'search','hasSimilarity'));
+
+        $isPreprocessed = DB::table('pasal')
+            ->whereNotIn('id', function ($query) {
+                $query->select('pasal_id')->from('document_terms');
+            })
+            ->doesntExist(); // TRUE jika SEMUA pasal sudah diproses
+
+        return view('admin.data.index', compact(
+            'DataBuku',
+            'DataBab',
+            'DataPasal',
+            'filter',
+            'search',
+            'hasSimilarity',
+            'isPreprocessed'
+        ));
     }
 
     private function preprocessQuery($query)

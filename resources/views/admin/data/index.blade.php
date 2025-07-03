@@ -42,6 +42,12 @@
                 class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-500 cursor-pointer">Terapkan
                 Filter</button>
         </form>
+        @if(!$isPreprocessed)
+        <a href="{{ route('preprocess.all') }}"
+            class="inline-block bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded shadow transition duration-200 mb-4 mt-6">
+            Preprocessing Data Pasal
+        </a>
+        @endif
         <div class="flex flex-wrap w-full my-5 mx-auto">
             @include('admin.data.buku.index')
             @include('admin.data.bab.index')

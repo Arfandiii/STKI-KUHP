@@ -15,7 +15,7 @@
                         </a>
                         <form action="{{ route('admin.dashboard.data') }}" method="GET"
                             class="flex items-center space-x-2">
-                            <input type="hidden" name="filter" value="{{ request('filter', 'all') }}">
+                            <input type="hidden" name="filter" value="dataPasal"> {{-- HARUS EXPLICIT --}}
                             <input type="text" name="q" placeholder="Cari pasal..." value="{{ request('q') }}"
                                 class="py-2 px-4 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <button type="submit"

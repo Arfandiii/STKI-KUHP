@@ -18,8 +18,6 @@
     <div class="fixed inset-0 -z-50 block bg-[#1a0000] opacity-70 ">
     </div>
 
-
-
     <!-- Navbar -->
     @include('layouts.navbar')
 
