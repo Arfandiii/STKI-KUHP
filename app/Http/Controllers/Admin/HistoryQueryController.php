@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Query;
 
 class HistoryQueryController extends Controller
 {
@@ -12,7 +13,8 @@ class HistoryQueryController extends Controller
      */
     public function index()
     {
-        return view('admin.history.index');
+        $DataHistory = Query::paginate(20);
+        return view('admin.history.index', compact('DataHistory'));
     }
 
     /**
@@ -58,8 +60,16 @@ class HistoryQueryController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy($id)
     {
-        //
+        try {
+            $queries = Query::findOrFail($id);
+            $queries->delete();
+            return redirect()->back()
+            ->with('success', 'History pencarian berhasil dihapus.');
+        } catch (\Exception $e) {
+            return redirect()->back()
+            ->with('error', 'Terjadi kesalahan saat menghapus history pencarian: ' . $e->getMessage());
+        }
     }
 }

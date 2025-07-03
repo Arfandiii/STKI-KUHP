@@ -38,10 +38,10 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('/profile/edit', [AdminDashboardController::class, 'edit'])->name('profile.edit');
     Route::post('/profile/update', [AdminDashboardController::class, 'update'])->name('profile.update');
     Route::post('/admin/password/update', [AdminDashboardController::class, 'updatePassword'])->name('dashboard.password.update');
-    route::get('/history', [HistoryQueryController::class, 'index'])->name('dashboard.history');
     Route::get('/data', [DataController::class, 'index'])->name('dashboard.data');
     Route::resource('buku-kuhp', BukuKuhpController::class);
     Route::resource('bab-kuhp', BABKuhpController::class);
     Route::resource('pasal-kuhp', PasalKuhpController::class);
+    Route::resource('history', HistoryQueryController::class);
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });

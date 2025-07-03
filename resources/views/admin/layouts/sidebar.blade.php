@@ -39,7 +39,7 @@
         <a href="{{ route('admin.dashboard.data') }}">
             <x-nav-link-admin iconType="data">Manajemen Data</x-nav-link-admin>
         </a>
-        <a href="{{ route('admin.dashboard.history') }}">
+        <a href="{{ route('admin.history.index') }}">
             <x-nav-link-admin iconType="history">History Pencarian</x-nav-link-admin>
         </a>
         <a href="{{ route('admin.dashboard.profile') }}">
@@ -61,7 +61,7 @@
         <a href="{{ route('admin.dashboard.data') }}">
             <x-nav-link-mini-admin iconType="data"></x-nav-link-mini-admin>
         </a>
-        <a href="{{ route('admin.dashboard.history') }}">
+        <a href="{{ route('admin.history.index') }}">
             <x-nav-link-mini-admin iconType="history"></x-nav-link-mini-admin>
         </a>
         <a href="{{ route('admin.dashboard.profile') }}">

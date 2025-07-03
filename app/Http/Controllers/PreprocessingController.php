@@ -156,9 +156,21 @@ class PreprocessingController extends Controller
 
         foreach ($documents as &$document) {
             $preprocessingResult = TextPreprocessing::preprocessTextDetailed($document['isi']);
-
             $document['preprocessing'] = $preprocessingResult;
         }
+
+        // Tambahkan dokumen query
+        $query = "Terpidana melarikan diri dari tempat pidana penjara.";
+        $queryPreprocessing = TextPreprocessing::preprocessTextDetailed($query);
+
+        $documents[] = [
+            'buku' => 'Query',
+            'bab' => '-',
+            'pasal' => 'Query',
+            'isi' => $query,
+            'preprocessing' => $queryPreprocessing
+        ];
+        // dd($documents);
 
         return $documents;
     }

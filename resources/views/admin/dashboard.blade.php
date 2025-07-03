@@ -6,7 +6,7 @@
     {{-- <x-breadcrumb :breadcrumbs="$breadcrumbs"></x-breadcrumb> --}}
     <div class="flex flex-wrap w-full my-5 -mx-2">
         <div class="w-full md:w-1/2 lg:w-1/2 p-2">
-            <a href="#">
+            <a href="{{ route('admin.dashboard.data') }}">
                 <div
                     class="flex items-center flex-row w-full hover:shadow hover:bg-blue-500 bg-blue-600 rounded-md p-3">
                     <div
@@ -35,7 +35,7 @@
             </a>
         </div>
         <div class="w-full md:w-1/2 lg:w-1/2 p-2">
-            <a href="#">
+            <a href="{{ route('admin.dashboard.data') }}">
                 <div
                     class="flex items-center flex-row w-full hover:shadow hover:bg-blue-500 bg-blue-600 rounded-md p-3">
                     <div
@@ -64,7 +64,7 @@
             </a>
         </div>
         <div class="w-full md:w-1/2 lg:w-1/2 p-2">
-            <a href="#">
+            <a href="{{ route('admin.dashboard.data') }}">
                 <div
                     class="flex items-center flex-row w-full hover:shadow hover:bg-blue-500 bg-blue-600 rounded-md p-3">
                     <div
@@ -93,7 +93,7 @@
             </a>
         </div>
         <div class="w-full md:w-1/2 lg:w-1/2 p-2">
-            <a href="#">
+            <a href="{{ route('admin.history.index') }}">
                 <div
                     class="flex items-center flex-row w-full hover:shadow hover:bg-blue-500 bg-blue-600 rounded-md p-3">
                     <div
