@@ -10,6 +10,7 @@ use App\Models\Buku;
 use App\Models\Bab;
 use App\Models\Pasal;
 use App\Models\Query;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
@@ -22,7 +23,17 @@ class DashboardController extends Controller
         $TotalBAB = count(Bab::all());
         $TotalPasal = count(Pasal::all());
         $TotalQuery = count(Query::all());
-        return view('admin.dashboard', compact('TotalBuku', 'TotalBAB', 'TotalPasal', 'TotalQuery'));
+        // Data untuk History Chart
+        $days = collect(range(0, 29))->map(function ($i) {
+            return Carbon::now()->subDays($i)->format('d M');
+        })->reverse()->values();
+
+        $dailyHistories = collect(range(0, 29))->map(function ($i) {
+            return Query::whereDate('created_at', Carbon::now()->subDays($i)->toDateString())
+                ->count();
+        })->reverse()->values();
+
+        return view('admin.dashboard', compact('TotalBuku', 'TotalBAB', 'TotalPasal', 'TotalQuery', 'days', 'dailyHistories'));
     }
 
     /**

@@ -10,7 +10,10 @@ use App\Http\Controllers\admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\DataController;
 use App\Http\Controllers\Admin\HistoryQueryController;
 use App\Http\Controllers\Admin\PasalKuhpController;
-
+// routes/web.php
+Route::fallback(function () {
+    return view('errors.404');
+});
 Route::get('/', function () { return view('welcome');})->name('home');
 Route::get('/#home', function () { return view('welcome');})->name('home');
 Route::get('/#tentang', function () { return view('welcome');})->name('tentang');

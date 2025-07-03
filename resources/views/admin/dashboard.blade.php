@@ -3,7 +3,6 @@
 @section('content')
 <!-- CONTENT -->
 <div class="content ml-12 transform ease-in-out duration-500 pt-20 px-2 md:px-5 pb-4">
-    {{-- <x-breadcrumb :breadcrumbs="$breadcrumbs"></x-breadcrumb> --}}
     <div class="flex flex-wrap w-full my-5 -mx-2">
         <div class="w-full md:w-1/2 lg:w-1/2 p-2">
             <a href="{{ route('admin.dashboard.data') }}">
@@ -125,33 +124,71 @@
 
 
     <div class="flex flex-wrap w-full my-5 -mx-2">
-        <!-- Statistik Peminjaman Buku -->
+        <!-- Statistik pencarian pasal -->
         <div class="w-full">
             <div class="bg-white p-6 rounded-lg shadow-md">
                 <h3 class="text-xl font-bold text-gray-800 mb-4">Statistik Pencarian</h3>
-                <canvas id="userChart" height="200" width="400"></canvas>
+                <canvas id="historyChart" height="200" width="400"></canvas>
             </div>
         </div>
     </div>
 
-    <div class="bg-white mt-6 rounded-lg shadow p-4">
-        <h3 class="text-lg font-bold mb-4">Aktivitas Terbaru</h3>
-        <ul class="divide-y">
-            {{-- @foreach ($recentActivities as $activity) --}}
-            <li class="flex items-center justify-between py-2 border-b">
-                <div class="flex items-center">
-                    <img class="w-10 h-10 rounded-full"
-                        src="https://ui-avatars.com/api/?name=# }}&background=0D8ABC&color=fff" alt="User Avatar">
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-800">#</p>
-                        <p class="text-xs text-gray-500">#</p>
-                    </div>
-                </div>
-                <span class="text-xs bg-green-100 text-green-600 px-2 py-1 rounded">Konsultasi</span>
-            </li>
-            {{-- @endforeach --}}
-        </ul>
-    </div>
 </div>
-
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('historyChart').getContext('2d');
+        
+        const historyChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: @json($days),
+                datasets: [{
+                    label: 'Jumlah Aktivitas',
+                    data: @json($dailyHistories),
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 2,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                size: 12,
+                                maxRotation: 0
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            font: {
+                                size: 14
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `Aktivitas: ${context.parsed.y}`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
 @endsection

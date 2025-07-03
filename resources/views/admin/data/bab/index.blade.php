@@ -1,7 +1,8 @@
 @if(request('filter') === 'all' || request('filter') === 'dataBab' || !request('filter'))
-<div id="dataBab" class="{{ request('filter') === 'dataBuku' || request('filter') === 'dataPasal' ? 'hidden' : '' }}">
+<div id="dataBab"
+    class="{{ request('filter') === 'dataBuku' || request('filter') === 'dataPasal' ? 'hidden' : '' }} w-full">
     <div class="w-full p-2 mb-12">
-        <div class="flex items-center flex-row w-ful shadow-lg bg-white rounded-md p-3">
+        <div class="flex items-center flex-row w-full shadow-lg bg-white rounded-md p-3">
             <div class="flex flex-col justify-around flex-grow p-5 text-gray-800">
                 <div class="flex justify-between mb-5">
                     <h1 class="whitespace-nowrap font-bold text-2xl text-gray-800">Data Bab</h1>
@@ -12,7 +13,9 @@
                                 Tambah Bab
                             </button>
                         </a>
-                        <form action="$" method="GET" class="flex items-center space-x-2">
+                        <form action="{{ route('admin.dashboard.data') }}" method="GET"
+                            class="flex items-center space-x-2">
+                            <input type="hidden" name="filter" value="{{ request('filter', 'all') }}">
                             <input type="text" name="q" placeholder="Cari BAB..."
                                 class="py-2 px-4 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <button type="submit"
@@ -23,7 +26,7 @@
                     </div>
                 </div>
                 <div class="overflow-x-auto mb-4">
-                    <table class="min-w-full bg-white">
+                    <table class="min-w-full bg-white ">
                         <thead class="text-gray-700">
                             <tr class="border-b">
                                 <th class="text-left py-5 px-6 font-semibold text-gray-600">No</th>
@@ -33,8 +36,8 @@
                                 <th class="text-left py-5 px-6 font-semibold text-gray-600">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="text-gray-700">
-                            @foreach ($DataBab as $bab)
+                        <tbody class="text-gray-700 w-full">
+                            @forelse ($DataBab as $bab)
                             <tr class="border-b">
                                 <td class="py-5 px-6">{{ (($DataBab->currentPage() - 1) *
                                     $DataBab->perPage()) +
@@ -79,7 +82,11 @@
                                     </div>
                                 </td>
                             </tr>
-                            @endforeach
+                            @empty
+                            <tr class="border border-gray-300 text-center">
+                                <th class="py-4 text-red-500" colspan="5">Data BAB tidak ditemukan.</th>
+                            </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
