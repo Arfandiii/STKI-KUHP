@@ -14,7 +14,7 @@
             <div class="w-full md:w-1/2 px-4 mb-8">
                 <div class="bg-white p-6 rounded-lg shadow  w-full">
                     <h3 class="text-xl font-bold mb-4">Kirim Pesan</h3>
-                    <form action="/contact" method="POST">
+                    <form action="#" method="GET">
                         @csrf
                         <div class="mb-4 w-full">
                             <label class="block text-gray-700 text-sm font-bold mb-2" for="name">
