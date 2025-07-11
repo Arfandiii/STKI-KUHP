@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Http\Controllers\PreprocessingController;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 
 class SearchController extends Controller
 {
@@ -55,7 +56,7 @@ class SearchController extends Controller
         // === [2] Saat GET: Menampilkan hasil pencarian sebelumnya ===
         $query = session('search_keyword');
         $preprocessed = session('search_preprocessed');
-    
+        
         // Jika tidak ada session, redirect kembali
         if (empty($query) || empty($preprocessed)) {
             return redirect()->route('pasal.index')->with('error', 'Query tidak ditemukan dalam sesi.');
@@ -64,6 +65,18 @@ class SearchController extends Controller
         // Ambil TF-IDF hasil preprocessing query
         $queryTfidf = $preprocessed['tfidf'];
         $terms = array_keys($queryTfidf);
+
+        // ————————————————————————————
+        //  ➤ Ground truth: pasal yang mengandung *semua* term query
+        $termCount = count($terms);
+        $groundTruthIds = DB::table('document_terms')
+            ->select('pasal_id')
+            ->whereIn('term', $terms)
+            ->groupBy('pasal_id')
+            ->havingRaw('COUNT(DISTINCT term) = ?', [$termCount])
+            ->pluck('pasal_id')
+            ->toArray();
+        // ————————————————————————————
     
         // Hitung panjang vektor query: sqrt(q1^2 + q2^2 + ...)
         $queryLength = sqrt(array_sum(array_map(fn($val) => $val ** 2, $queryTfidf)));
@@ -101,11 +114,11 @@ class SearchController extends Controller
     
         // Urutkan berdasarkan similarity tertinggi
         usort($similarities, fn($a, $b) => $b['similarity'] <=> $a['similarity']);
-        $ids = array_column($similarities, 'pasal_id');
+        $predictedIds  = array_column($similarities, 'pasal_id');
     
         // Ambil data Pasal yang cocok dari database
         $pasals = Pasal::with('bab.buku')
-            ->whereIn('id', $ids)
+            ->whereIn('id', $predictedIds)
             ->get()
             ->keyBy('id');
     
@@ -133,11 +146,26 @@ class SearchController extends Controller
             $page,
             ['path' => $request->url(), 'query' => $request->query()]
         );
+
+        // ————————————————————————————
+        //  ➤ Hitung Confusion Matrix & Metrik
+        $totalDocs = Pasal::count();
+        $tp = count(array_intersect($predictedIds, $groundTruthIds));
+        $fp = count(array_diff($predictedIds,  $groundTruthIds));
+        $fn = count(array_diff($groundTruthIds, $predictedIds));
+        $tn = $totalDocs - $tp - $fp - $fn;
+
+        $precision = ($tp + $fp) > 0 ? round($tp / ($tp + $fp), 4) : 0;
+        $recall    = ($tp + $fn) > 0 ? round($tp / ($tp + $fn), 4) : 0;
+
+        $metrics = compact('tp','fp','fn','tn','precision','recall');
+        // ————————————————————————————
     
         // Kirim ke view
         return view('sections.pasal.index', [
             'results' => $paginator,
             'query' => $query,
+            'metrics' => $metrics,
         ]);
     }
     

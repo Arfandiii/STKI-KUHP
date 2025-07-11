@@ -15,7 +15,7 @@ class BukuSeeder extends Seeder
         $bukukuhp = [
             'BUKU KESATU ATURAN UMUM',
             'BUKU KEDUA KEJAHATAN',
-            'BUKU KETIGA TINDAK PIDANA TERHADAP KEAMANAN NEGARA',
+            'BUKU KETIGA Pelanggaran',
         ];
 
         foreach ($bukukuhp as $judul) {

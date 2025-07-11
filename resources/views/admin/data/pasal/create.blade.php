@@ -10,11 +10,12 @@
                 <span>/</span>
                 <h2 class="font-bold mb-2 text-center text-3xl">Tambah Pasal KUHP</h2>
             </div>
-            <form action="{{ route('admin.pasal-kuhp.store') }}" method="POST"
+            <form action="{{ route('admin.hadist.store') }}" method="POST"
                 class="flex flex-col gap-4 w-full my-5 mx-auto">
                 @csrf
                 <div class="mb-2">
-                    <label for="bab_id" class="block mb-2 text-lg font-medium text-gray-900 dark:text-white">                        BAB KUHP</label>
+                    <label for="bab_id" class="block mb-2 text-lg font-medium text-gray-900 dark:text-white"> BAB
+                        KUHP</label>
                     <select name="bab_id" id="bab_id" required
                         class="bg-gray-50 focus:outline-none focus:ring-1 border border-indigo-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
                         <option value="">-- Pilih BAB KUHP --</option>

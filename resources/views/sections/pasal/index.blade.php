@@ -26,6 +26,23 @@
     <div class="mb-8">
         {{ $results->links() }}
     </div>
+    @if(isset($metrics))
+    <div class="mt-6 bg-white shadow rounded-lg p-4 mb-8">
+        <h3 class="text-lg font-bold mb-2">Evaluasi Pencarian</h3>
+        <div class="grid grid-cols-2 gap-4 text-sm">
+            <div>
+                <p>✅ TP: <strong>{{ $metrics['tp'] }}</strong></p>
+                <p>❌ FP: <strong>{{ $metrics['fp'] }}</strong></p>
+                <p>🔎 FN: <strong>{{ $metrics['fn'] }}</strong></p>
+                <p>✅ TN: <strong>{{ $metrics['tn'] }}</strong></p>
+            </div>
+            <div>
+                <p>📊 Precision: <strong>{{ $metrics['precision'] }}</strong></p>
+                <p>📈 Recall: <strong>{{ $metrics['recall'] }}</strong></p>
+            </div>
+        </div>
+    </div>
+    @endif
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
         @forelse ($results as $pasal)
         <div
