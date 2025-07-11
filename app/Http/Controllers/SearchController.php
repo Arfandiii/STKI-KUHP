@@ -27,6 +27,20 @@ class SearchController extends Controller
         return view('sections.pasal.show', compact('pasal'));
     }
 
+    public function getGroundTruthPasalIds(array $terms, int $minMatchCount = 1): array
+    {
+        if (empty($terms)) return [];
+
+        return DB::table('document_terms')
+            ->select('pasal_id')
+            ->whereIn('term', $terms)
+            ->groupBy('pasal_id')
+            ->havingRaw('COUNT(DISTINCT term) >= ?', [$minMatchCount])
+            ->pluck('pasal_id')
+            ->unique()
+            ->toArray();
+    }
+
     public function search(Request $request)
     {
         // Ambil input query dari form
@@ -66,17 +80,8 @@ class SearchController extends Controller
         $queryTfidf = $preprocessed['tfidf'];
         $terms = array_keys($queryTfidf);
 
-        // ————————————————————————————
-        //  ➤ Ground truth: pasal yang mengandung *semua* term query
         $termCount = count($terms);
-        $groundTruthIds = DB::table('document_terms')
-            ->select('pasal_id')
-            ->whereIn('term', $terms)
-            ->groupBy('pasal_id')
-            ->havingRaw('COUNT(DISTINCT term) = ?', [$termCount])
-            ->pluck('pasal_id')
-            ->toArray();
-        // ————————————————————————————
+        $groundTruthIds = $this->getGroundTruthPasalIds($terms, ceil($termCount * 0.4)); // 40% threshold
     
         // Hitung panjang vektor query: sqrt(q1^2 + q2^2 + ...)
         $queryLength = sqrt(array_sum(array_map(fn($val) => $val ** 2, $queryTfidf)));
@@ -89,6 +94,12 @@ class SearchController extends Controller
         // Hitung cosine similarity: sim(q,d) = dot(q,d) / (||q|| * ||d||)
         $similarities = [];
         foreach ($docTerms as $pasalId => $rows) {
+
+            // Hanya hitung cosine similarity untuk pasal dalam ground truth
+            if (!in_array($pasalId, $groundTruthIds)) {
+                continue;
+            }
+
             $dot = 0;
             $docLen = 0;
     
@@ -103,8 +114,8 @@ class SearchController extends Controller
             $docLen = sqrt($docLen);
             $cosine = ($queryLength > 0 && $docLen > 0) ? round($dot / ($queryLength * $docLen), 4) : 0;
             
-            // Simpan hanya jika similarity > 0
-            if ($cosine >= 0.4) {
+            // Simpan hanya jika similarity > 65
+            if ($cosine >= 0.65) {
                 $similarities[] = [
                     'pasal_id' => $pasalId,
                     'similarity' => $cosine
@@ -168,5 +179,4 @@ class SearchController extends Controller
             'metrics' => $metrics,
         ]);
     }
-    
 }
