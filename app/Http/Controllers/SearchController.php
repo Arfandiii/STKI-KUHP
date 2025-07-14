@@ -81,7 +81,7 @@ class SearchController extends Controller
         $terms = array_keys($queryTfidf);
 
         $termCount = count($terms);
-        $groundTruthIds = $this->getGroundTruthPasalIds($terms, ceil($termCount * 0.4)); // 40% threshold
+        $groundTruthIds = $this->getGroundTruthPasalIds($terms, ceil($termCount * 0.3)); // 30% threshold
     
         // Hitung panjang vektor query: sqrt(q1^2 + q2^2 + ...)
         $queryLength = sqrt(array_sum(array_map(fn($val) => $val ** 2, $queryTfidf)));
@@ -114,8 +114,8 @@ class SearchController extends Controller
             $docLen = sqrt($docLen);
             $cosine = ($queryLength > 0 && $docLen > 0) ? round($dot / ($queryLength * $docLen), 4) : 0;
             
-            // Simpan hanya jika similarity > 65
-            if ($cosine >= 0.65) {
+            // Simpan hanya jika similarity > 50
+            if ($cosine >= 0.5) {
                 $similarities[] = [
                     'pasal_id' => $pasalId,
                     'similarity' => $cosine
@@ -169,7 +169,12 @@ class SearchController extends Controller
         $precision = ($tp + $fp) > 0 ? round($tp / ($tp + $fp), 4) : 0;
         $recall    = ($tp + $fn) > 0 ? round($tp / ($tp + $fn), 4) : 0;
 
-        $metrics = compact('tp','fp','fn','tn','precision','recall');
+        $f1_score = ($precision + $recall) > 0
+        ? round(2 * $precision * $recall / ($precision + $recall), 4)
+        : 0;
+
+
+        $metrics = compact('tp','fp','fn','tn','precision','recall', 'f1_score');
         // ————————————————————————————
     
         // Kirim ke view

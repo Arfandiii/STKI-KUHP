@@ -39,6 +39,7 @@
             <div>
                 <p>📊 Precision: <strong>{{ $metrics['precision'] }}</strong></p>
                 <p>📈 Recall: <strong>{{ $metrics['recall'] }}</strong></p>
+                <p>📈 F1-Score: <strong>{{ $metrics['f1_score'] }}</strong></p>
             </div>
         </div>
     </div>
