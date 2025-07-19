@@ -4,7 +4,7 @@
             <div class="w-full md:w-1/2 px-4 mb-8">
                 <h3 class="text-xl font-bold mb-4">Kontak Kami</h3>
                 <p class="mb-2">
-                    <i class="mr-2">📍</i> Jl. Kebon Sirih No. 45, Jakarta Pusat
+                    <i class="mr-2">📍</i> Jl. Raya Ngabang
                 </p>
                 <p class="mb-2">
                     <i class="mr-2">📞</i> (021) 123456789
