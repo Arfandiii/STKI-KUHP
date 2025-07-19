@@ -7,11 +7,11 @@
                     <i class="mr-2">📍</i> Jl. Raya Ngabang
                 </p>
                 <p class="mb-2">
-                    <i class="mr-2">📞</i> (021) 123456789
+                    <i class="mr-2">📞</i> +6285787455649
                 </p>
-                <p class="mb-2">
+                {{-- <p class="mb-2">
                     <i class="mr-2">✉️</i> info@unmuhpnk.ac.id
-                </p>
+                </p> --}}
             </div>
             {{-- <div class="w-full md:w-1/2 px-4 mb-8">
                 <h3 class="text-xl font-bold mb-4">Ikuti Kami</h3>
